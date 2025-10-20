@@ -1,0 +1,14 @@
+# Root-level ignore
+node_modules/
+.env
+dist/
+build/
+
+# Subfolders
+backend/node_modules/
+frontend/node_modules/
+
+# System / IDE
+.DS_Store
+.vscode/
+.idea/
