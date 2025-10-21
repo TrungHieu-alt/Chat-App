@@ -11,7 +11,7 @@ export default function AuthPage() {
             <div className="bg-[#df6900] text-primary-foreground flex size-6 items-center justify-center rounded-md">
               <Shell className="size-4" />
             </div>
-            Medical Chat
+            Chat
           </a>
         </div>
 

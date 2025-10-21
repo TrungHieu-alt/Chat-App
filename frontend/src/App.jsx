@@ -25,7 +25,9 @@ useEffect(() => { // f5 thì kết nối lại
         <Routes>
           <Route path="/dashBoard" element={<DashBoard />} />
           <Route path="/profile" element={<Profile />} />
+          <Route path="/" element={<AuthPage />} />
           <Route path="/auth" element={<AuthPage />} />
+
           <Route path="/create" element={<CreateCon />} />
         </Routes>
       </BrowserRouter>
