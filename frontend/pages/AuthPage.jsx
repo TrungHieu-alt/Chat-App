@@ -1,7 +1,7 @@
 import React from "react";
 import { Shell } from "lucide-react";
 import { LoginForm } from "@/components/login-form";
-
+import LoginImage from "@/assets/login.jpg"
 export default function AuthPage() {
   return (
     <div className="grid min-h-screen lg:grid-cols-2">
@@ -24,7 +24,7 @@ export default function AuthPage() {
 
       <div className="relative hidden lg:block">
         <img
-          src="../src/assets/login.jpg"
+          src= {LoginImage}
           alt="Login illustration"
           className="absolute inset-0 h-full w-full object-cover"
         />
