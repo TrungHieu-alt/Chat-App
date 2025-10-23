@@ -12,7 +12,7 @@ import { useState, useEffect } from "react";
 import { NavUser } from "@/components/nav-user";
 import { CreateNewChat } from "./createChat";
 import { Label } from "@/components/ui/label";
-import { ChatList } from "../../myComponents/conversationList";
+import { ChatList } from "../../myComponents/ConversationList";
 import { Link } from "react-router-dom";
 import socket from "../../api/socketClient";
 import conversationApi from "../../api/conversation/conversation";
