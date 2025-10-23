@@ -11,17 +11,6 @@ import userApi from "../../api/user/user"
 import conversationApi from "../../api/conversation/conversation"
 import socket from "../../api/socketClient"
 
-const mockUsers = [
-  { id: 1, name: "Sarah Johnson", avatar: "/diverse-woman-portrait.png", online: true },
-  { id: 2, name: "Michael Chen", avatar: "/man.jpg", online: true },
-  { id: 3, name: "Emma Williams", avatar: "/diverse-woman-portrait.png", online: false },
-  { id: 4, name: "James Rodriguez", avatar: "/man.jpg", online: true },
-  { id: 5, name: "Olivia Brown", avatar: "/diverse-woman-portrait.png", online: false },
-  { id: 6, name: "David Kim", avatar: "/man.jpg", online: true },
-  { id: 7, name: "Sophia Martinez", avatar: "/diverse-woman-portrait.png", online: true },
-  { id: 8, name: "Daniel Lee", avatar: "/man.jpg", online: false },
-]
-
 export function CreateNewChat({ open, onOpenChange, createConversation }) {
   const [chatName, setChatName] = useState("")
   const [searchQuery, setSearchQuery] = useState("")
