@@ -3,3 +3,4 @@ export {default as authRouter} from './authRoutes.js';
 export {default as conversationRouter} from './conversationRoutes.js';
 export {default as userRouter} from './userRoutes.js';
 export {default as messageRouter} from './messageRoutes.js';
+export {default as s3Router} from './s3Routes.js';
