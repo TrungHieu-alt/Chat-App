@@ -20,7 +20,6 @@ useEffect(() => { // f5 thì kết nối lại
           <Route path="/profile" element={<Profile />} /> 
           <Route path="/" element={<AuthPage />} />
           <Route path="/auth" element={<AuthPage />} />
-          <Route path="/chat" element={<ChatSite />} />
         </Routes>
       </BrowserRouter>
     </>
