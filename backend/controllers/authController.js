@@ -1,150 +1,95 @@
-
-const bcrypt = require('bcrypt');
-const { v4: uuidv4 } = require('uuid');
-const pool = require('../config/pool');
-const jwt = require('jsonwebtoken');
-
-
-
+// controllers/authController.js
+const {
+  loginService,
+  signupService,
+  updatePasswordService,
+} = require("../services/authService");
+const jwt = require("jsonwebtoken");
 const JWT_SECRET = process.env.JWT_SECRET;
 
-const normalizeDate = (iso) =>{
-    const date = new Date(iso);
-
-    const formatted = date.toLocaleDateString("en-US", {
-    month: "long",
-    day: "numeric",
-    year: "numeric",
-    });
-
-    return formatted;
-} 
-
-const login = async (req,res) => {
-    try {
-        const {username, password} = req.body;
-        const [rows] = await pool.query('SELECT id, fullname, username, avatar_url, email, bio, phonenumber, created_at , password_hash FROM users WHERE username = ? and deactivated_at is null', [username]);
-        const user = rows[0];
-        if(!user) return res.status(404).json({message: "User not found"});
-
-        const success = await bcrypt.compare(password, user.password_hash);
-        if(success) {
-
-                const created_at = normalizeDate(user.created_at);
-                const token = jwt.sign(
-                { id: user.id, fullname: user.fullname }, 
-                JWT_SECRET,                               
-                { expiresIn: '2h' }                       
-                );
-            return res.status(200).json({
-                message : "Logic sucessfully",
-                token,
-                user : {
-                    fullname: user.fullname,
-                    username,
-                    avatar_url: user.avatar_url,
-                    email: user.email,
-                    phonenumber: user.phonenumber,
-                    bio: user.bio,
-                    created_at,
-                    id: user.id
-                },
-            });
-        }
-        else {
-            return res.status(401).json({message: "Incorrect password"});
-        }
-    } catch (error) {
-        console.log(error);
-        return res.status(500).json({message: "Internal Server Error"});
-    }
-}
-
-const signup = async (req,res) => {
-    try {    
-        const {fullname ,username, password, phonenumber, avatar_url} = req.body;
-        const [existing] = await pool.query("SELECT id from users where username = ? and deactivated_at is null",[username]);
-        if(existing.length > 0) {
-            return res.status(400).json({message : "Username already exists"})
-        }
-        
-        const id = uuidv4();
-        const password_hash = await bcrypt.hash(password,10);
-
-        const [result] = await pool.query("INSERT INTO users (id, fullname, username, password_hash, phonenumber, avatar_url) VALUES (?, ?, ?, ?, ?, ?)",
-            [id, fullname, username, password_hash, phonenumber || null, avatar_url]
-        )
-        if (result.affectedRows === 0) throw new Error('Insert failed');
-        console.log('insert OK')
-
-        const today = new Date();
-        const options = { month: "long", day: "numeric", year: "numeric" };
-        const created_at = today.toLocaleDateString("en-US", options);
-
-
-        const token = jwt.sign(
-        { id, fullname}, 
-        JWT_SECRET,                               
-        { expiresIn: '15m' }                       
-        );
-        return res.status(201).json({
-            message: 'User registered successfully',
-            id,
-            user:{
-                username,
-                fullname,
-                phonenumber,
-                avatar_url: avatar_url,
-                created_at
-            },
-            token,   
-        });
-
-    } catch (error) {
-        console.log(error);
-        return res.status(500).json({ message: 'Internal Server Error' });
-    }
-}
-
-const updatePassword = async (req, res) => {
-  const user = req.user;
-  const { oldPassword, newPassword } = req.body;
-  const conn = await pool.getConnection();
+async function login(req, res) {
   try {
-    await conn.beginTransaction();
-
-    const [rows] = await conn.query(
-      "SELECT password_hash FROM users WHERE id = ? and deactivated_at is null ",
-      [user.id]
+    const { username, password } = req.body;
+    const data = await loginService(username, password);
+    const token = jwt.sign(
+      { id: data.user.id, fullname: data.user.fullname },
+      JWT_SECRET,
+      { expiresIn: "2h" }
     );
-    if (rows.length === 0) {
-      await conn.rollback();
-      return res.status(404).json({ message: "User not found" });
-    }
-
-    const currentHash = rows[0].password_hash;
-    const match = await bcrypt.compare(oldPassword, currentHash);
-    if (!match) {
-      await conn.rollback();
-      return res.status(401).json({ message: "Incorrect current password" });
-    }
-
-    const newHash = await bcrypt.hash(newPassword, 10);
-    await conn.query(
-      "UPDATE users SET password_hash = ?, updated_at = NOW() WHERE id = ?",
-      [newHash, user.id]
-    );
-
-    await conn.commit();
-    return res.status(200).json({ message: "Password updated successfully" });
+    res.cookie("token", token, {
+      httpOnly: true, // không thể đọc qua JS => chống XSS
+      secure: process.env.NODE_ENV === "production", // chỉ gửi qua HTTPS
+      sameSite: "strict", // tránh CSRF
+      maxAge: 7 * 24 * 60 * 60 * 1000 // 7 ngày
+    });
+    res.status(200).json({
+      message: "Login successful",
+      ...data,
+    });
   } catch (error) {
-    await conn.rollback();
-    console.error("UPDATE PASSWORD ERROR:", error);
-    return res.status(500).json({ message: "Internal Server Error" });
-  } finally {
-    conn.release();
+    console.error("LOGIN ERROR:", error);
+    res
+      .status(error.status || 500)
+      .json({ message: error.message || "Internal Server Error" });
   }
+}
+
+async function signup(req, res) {
+  try {
+    const data = await signupService(req.body);
+    const token = jwt.sign(
+      { id: data.user.id, fullname: data.user.fullname },
+      JWT_SECRET,
+      { expiresIn: "2h" }
+    );
+    res.cookie("token", token, {
+      httpOnly: true, // không thể đọc qua JS => chống XSS
+      secure: process.env.NODE_ENV === "production", // chỉ gửi qua HTTPS
+      sameSite: "strict", // tránh CSRF
+      maxAge: 7 * 24 * 60 * 60 * 1000 // 7 ngày
+    });
+    res.status(201).json({
+      message: "User registered successfully",
+      ...data,
+    });
+  } catch (error) {
+    console.error("SIGNUP ERROR:", error);
+    res
+      .status(error.status || 500)
+      .json({ message: error.message || "Internal Server Error" });
+  }
+}
+
+async function updatePassword(req, res) {
+  try {
+    await updatePasswordService(req.user.id, req.body.oldPassword, req.body.newPassword);
+    res.status(200).json({ message: "Password updated successfully" });
+  } catch (error) {
+    console.error("UPDATE PASSWORD ERROR:", error);
+    res
+      .status(error.status || 500)
+      .json({ message: error.message || "Internal Server Error" });
+  }
+}
+
+async function logout(req, res) {
+  try {
+    res.clearCookie("token", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+    });
+    res.status(200).json({ message: "Logged out successfully" });
+  } catch (error) {
+    console.error("LOGOUT ERROR:", error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+}
+
+
+module.exports = {
+  logout,
+  login,
+  signup,
+  updatePassword,
 };
-
-
-module.exports  = {login, signup, updatePassword};

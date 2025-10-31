@@ -8,6 +8,7 @@ export const baseClient = axios.create({
     "Content-Type": "application/json",
     Accept: "application/json",
   },
+  withCredentials: true,
 });
 
 export async function handleRequest(promise) {
@@ -21,15 +22,5 @@ export async function handleRequest(promise) {
   }
 }
 
-baseClient.interceptors.request.use((req) => {
-  const token = localStorage.getItem("token");
-  if (token) {
-    req.headers.Authorization = `Bearer ${token}`;
-  } else {
-    delete req.headers.Authorization;
-    console.warn("⚠️ Token not found");
-  }
-  return req;
-});
 
 export default { baseClient, handleRequest };
