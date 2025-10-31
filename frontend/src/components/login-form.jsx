@@ -64,13 +64,10 @@ export function LoginForm({ className, ...props }) {
 
     if (err) throw new Error(err);
 
-    if (!res?.data.token) throw new Error("Thiếu token trong response!");
+    if (!res?.data?.user) throw new Error("Thiếu thông tin user trong response!");
 
-    localStorage.setItem("token", res.data.token);
     localStorage.setItem("user", JSON.stringify(res.data.user));    
     console.log(JSON.parse(localStorage.getItem("user")));
-    console.log("token :", res.data.token)
-    socket.auth = {token: res.data.token};
     socket.connect();
     navigateToDashBoard();
     requestNotificationPermission();

@@ -13,6 +13,10 @@ const authApi = {
   async updatePassword(data) {
     return handleRequest(baseClient.put("/auth/updatePassword", data))
   },
+
+  async logout() {
+    return handleRequest(baseClient.post("auth/logout"));
+  }
 }
 
 export default authApi

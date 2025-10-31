@@ -33,6 +33,8 @@ import { Switch } from "@/components/ui/switch";
 import { useNavigate } from "react-router-dom";
 import { normalizeDate } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import axios from "axios";
+import authApi from "../../api/user/auth";
 const data = {
   navMain: [
     {
@@ -167,9 +169,9 @@ export function AppSidebar({ handleSelectChat }) {
     };
   }, [socket]);
 
-  const handleClick = (item) => {
+  const handleClick = async (item) => {
     if (item.title === "Logout") {
-      localStorage.removeItem("token");
+      await authApi.logout();
       navigate(item.url);
       if (socket.connected) socket.disconnect();
     }
