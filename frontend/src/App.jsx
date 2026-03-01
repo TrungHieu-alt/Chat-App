@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react'
+import { useEffect } from 'react'
 import './App.css'
 import { BrowserRouter,Routes,Route } from 'react-router-dom'
-import {AuthPage, ChatSite, DashBoard, Profile} from '../pages/index'
+import {AuthPage, DashBoard, Profile} from '../pages/index'
 import socket from '../api/socketClient'
 
 
