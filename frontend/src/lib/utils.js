@@ -1,6 +1,5 @@
 import { clsx } from "clsx";
 import { twMerge } from "tailwind-merge"
-import shell from "../assets/shell.svg";
 export function cn(...inputs) {
   return twMerge(clsx(inputs));
 }

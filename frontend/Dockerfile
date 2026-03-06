@@ -1,18 +1,19 @@
-FROM node:20-alpine
 
+FROM node:20-alpine AS deps
 WORKDIR /app
-# Create a non-root user and group, avoid running the application as root for security reasons
-RUN addgroup -S appgroup && adduser -S appuser -G appgroup
-# copy package.json and package-lock.json to the container
 COPY package*.json ./
-# install dependencies using npm ci for clean install 
 RUN npm ci
 
-# copy all src code and all other files to the container
+FROM deps AS build
+WORKDIR /app
 COPY . .
-RUN chown -R appuser:appgroup /app
+ARG VITE_API_URL
+ARG VITE_SOCKET_URL
+ENV VITE_API_URL=${VITE_API_URL}
+ENV VITE_SOCKET_URL=${VITE_SOCKET_URL}
+RUN npm run build
 
-USER appuser
-EXPOSE 5173
-# Run command runs when docker build, cmd command runs when docker run
-CMD ["npm", "run", "dev"]
+FROM nginx:1.27-alpine AS runtime
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+COPY --from=build /app/dist /usr/share/nginx/html
+CMD ["nginx", "-g", "daemon off;"]

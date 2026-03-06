@@ -9,6 +9,10 @@ const cookie = require("cookie")
 const {createMessageService} = require("./services/messageService")
 
 const JWT_SECRET = process.env.JWT_SECRET;
+const allowedOrigins = (process.env.CLIENT_URL || "")
+  .split(",")
+  .map((origin) => origin.trim())
+  .filter(Boolean);
 const disconnectTimers = new Map();
 // ================================
 // 🔧 HTTP + Socket.IO Server Setup
@@ -17,7 +21,12 @@ const disconnectTimers = new Map();
 module.exports = (server) =>{
   io = new Server(server, {
   cors: {
-    origin: process.env.CLIENT_URL,
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.length === 0 || allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+      return callback(new Error("Not allowed by CORS"));
+    },
     methods: ["GET", "POST"],
     credentials: true,
   },

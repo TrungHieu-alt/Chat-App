@@ -5,7 +5,8 @@
   "scripts": {
     "test": "node index.js",
     "dev": "nodemon index.js",
-    "socket": "nodemon socketServer.js"
+    "socket": "nodemon socketServer.js",
+    "build": "tsc"
   },
   "author": "",
   "license": "ISC",

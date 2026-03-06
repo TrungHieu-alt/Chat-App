@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const http = require('http');
+const crypto = require("crypto");
 
 const cookieParser = require("cookie-parser");
 // require('dotenv').config();
@@ -12,7 +13,24 @@ const InitSocket = require("./socketServer.js");
 app.use(cors({origin: process.env.CLIENT_URL, credentials: true})); // accept request from different domain
 app.use(express.json()); // allow auto parse json -> object
 app.use(express.urlencoded({extended : true})); // allow auto parse request from html form -> object
-app.use(cookieParser());
+app.use(cookieParser()); // read cookies from request header and set to req.cookies
+
+app.use((req, res, next) => {
+    const incomingTraceId = req.get("x-request-id");
+    const traceId = incomingTraceId && incomingTraceId.trim() ? incomingTraceId : crypto.randomUUID();
+    req.traceId = traceId;
+    res.setHeader("X-Request-Id", traceId);
+    next();
+});
+
+app.use((req, res, next) => {
+    const startedAt = Date.now();
+    res.on("finish", () => {
+        const durationMs = Date.now() - startedAt;
+        console.log(`[trace:${req.traceId}] ${req.method} ${req.originalUrl} -> ${res.statusCode} (${durationMs}ms)`);
+    });
+    next();
+});
 
 
 app.use('/api/auth',authRouter);
